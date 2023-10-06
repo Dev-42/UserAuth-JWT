@@ -1,0 +1,24 @@
+{
+  "name": "userauth-jwt",
+  "version": "1.0.0",
+  "description": "This repo contains all the important files required for user authentication using jwt",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dev-42/UserAuth-JWT.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dev-42/UserAuth-JWT/issues"
+  },
+  "homepage": "https://github.com/Dev-42/UserAuth-JWT#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.4"
+  }
+}
