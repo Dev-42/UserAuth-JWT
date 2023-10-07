@@ -3,6 +3,7 @@ const {connection} = require('../db/conn')
 const {UserModel} = require('../models/User.model')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const mongoose = require('mongoose')
 require('dotenv').config()
 
 const app = express()
@@ -30,12 +31,13 @@ app.get('/' , async(req,res) => {
 })
 
 app.post('/signup' , async(req,res) => {
-    const {name , password , city} = req.body
+    const {name , password , city , role} = req.body
     try{
         const user = new UserModel({
             name,
             password : bcrypt.hashSync(password,10),
-            city
+            city,
+            role
         })
         const userInsert  = await user.save()
         if(userInsert){
@@ -53,7 +55,7 @@ app.post('/signup' , async(req,res) => {
 app.post('/signin' , async(req,res) => {
     const {name , password} = req.body
     try{
-        const user = await UserModel.findOne(name)
+        const user = await UserModel.findOne({name})
         if(!user){
             return res.status(400).send({status : false , message : 'User not found.Please do register frist'})
         }
@@ -62,7 +64,7 @@ app.post('/signin' , async(req,res) => {
             const token = jwt.sign(
                 {
                     user : user._id,
-                    name : name
+                    name : user.name
                 },
                 process.env.SECRET_KEY,
                 {expiresIn : '1d'}
@@ -87,10 +89,38 @@ app.get('/reports' , authenticate , async(req,res) => {
 app.get('/finances' , authenticate, async(req,res) => {
     res.send("Finance details")
 })
-// protected route
+// non-protected route
 app.get('/about' , async(req,res) => {
     res.send('About details')
 })
+
+// everyone's can access who is authenticated
+app.get('/products' ,authenticate, async(req,res) => {
+    res.send("everyone who has logged in can veiw this page.")
+})
+// seller
+app.get('/products/create', async (req, res) => {
+    // Fetching the user through the user's token
+    const token = req.headers.authorization?.split(" ")[1]
+    const decoded = jwt.verify(token, process.env.SECRET_KEY)
+    console.log(decoded)
+    const { user } = decoded
+    const userDB = await UserModel.findOne({ _id: user})
+    console.log(userDB)
+
+    if(userDB.role === 'seller'){
+        res.send("Product created")   
+    }else{
+        res.send("You are not a seller.Product can't be created")
+    }
+})
+
+// admin
+app.get('/products/delete' , async(req,res) => {
+    res.send("Product deleted")
+})
+
+
 app.listen(3000 , async() => {
     try{
         await connection
