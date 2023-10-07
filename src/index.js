@@ -10,6 +10,21 @@ const app = express()
 // middlewares
 app.use(express.json())
 
+const authenticate = (req,res,next) => {
+    const token = req.headers.authorization?.split(" ")[1]
+    if(!token){
+        res.send({status : false , message : "Please login"})
+    }
+    jwt.verify(token,process.env.SECRET_KEY,function(err,decoded){
+        if(decoded){
+            next()
+        }else{
+            res.send({status : false , message : "Please Login"})
+            console.log(err)
+        }
+    })
+}
+
 app.get('/' , async(req,res) => {
     res.send("Home page")
 })
@@ -63,6 +78,19 @@ app.post('/signin' , async(req,res) => {
     }
 })
 
+// protected route
+app.get('/reports' , authenticate , async(req,res) => {
+   res.send({status : true , message : "Token authenticated.You can access reports endpoint"})
+})
+
+// protected route
+app.get('/finances' , authenticate, async(req,res) => {
+    res.send("Finance details")
+})
+// protected route
+app.get('/about' , async(req,res) => {
+    res.send('About details')
+})
 app.listen(3000 , async() => {
     try{
         await connection
