@@ -18,6 +18,8 @@ const authenticate = (req,res,next) => {
     }
     jwt.verify(token,process.env.SECRET_KEY,function(err,decoded){
         if(decoded){
+            const { user } = decoded
+            req.user = user
             next()
         }else{
             res.send({status : false , message : "Please Login"})
@@ -99,12 +101,9 @@ app.get('/products' ,authenticate, async(req,res) => {
     res.send("everyone who has logged in can veiw this page.")
 })
 // seller
-app.get('/products/create', async (req, res) => {
+app.get('/products/create',authenticate, async (req, res) => {
     // Fetching the user through the user's token
-    const token = req.headers.authorization?.split(" ")[1]
-    const decoded = jwt.verify(token, process.env.SECRET_KEY)
-    console.log(decoded)
-    const { user } = decoded
+    const user = req.user
     const userDB = await UserModel.findOne({ _id: user})
     console.log(userDB)
 
