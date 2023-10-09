@@ -28,6 +28,26 @@ const authenticate = (req,res,next) => {
     })
 }
 
+const authorize = async(req,res,next) => {
+    const user = req.user
+    const userDB = await UserModel.find({_id : user})
+    if(req.url === '/products/create' && userDB.role === 'seller'){
+        // console.log(userDB)
+        next()
+    }
+    else if(req.url === '/upcomingsaledays' && userDB.role === 'seller'){
+        // console.log(userDB)
+        next()
+    }
+    else if(req.url === '/yourbirthdaycoupon' && userDB.role === 'customer'){
+        // console.log(userDB)
+        next()
+    }
+    else{
+        res.send({status : false , message : 'You are not a seller you cannot access this page'})
+    }
+}
+
 app.get('/' , async(req,res) => {
     res.send("Home page")
 })
@@ -101,17 +121,18 @@ app.get('/products' ,authenticate, async(req,res) => {
     res.send("everyone who has logged in can veiw this page.")
 })
 // seller
-app.get('/products/create',authenticate, async (req, res) => {
-    // Fetching the user through the user's token
-    const user = req.user
-    const userDB = await UserModel.findOne({ _id: user})
-    console.log(userDB)
+app.get('/products/create',authenticate,authorize, async (req, res) => {
+    res.send('Product created')
+})
 
-    if(userDB.role === 'seller'){
-        res.send("Product created")   
-    }else{
-        res.send("You are not a seller.Product can't be created")
-    }
+// seller
+app.get('/upcomingsaledays' ,authenticate,authorize, async(req,res) => {
+    res.send({status : true , message : 'You can access this page'})
+})
+
+// customer access only
+app.get('/yourbirthdaycoupon',authenticate,authorize,async(req,res) => {
+    res.send({status : true , message : 'customer can only access this page'})
 })
 
 // admin
